@@ -93,7 +93,7 @@ function createHash(counter, stringType) {
         string = Math.round(Math.random() * strings.length);
         random += strings.substring(string, string + 1);
     }
-    
+
     if (random === undefined) {
         createHash(counter, stringType)
     }
@@ -250,3 +250,61 @@ console.log(text)
 console.log(textEncrypted)
 
 console.log(textDescrypt)
+var fileSelected2 = document.getElementById('textFiltDescriptografado')
+
+window.onload = function () {
+    //Check the support for the File API support
+    if (window.File && window.FileReader && window.FileList && window.Blob) {
+        var fileSelected = document.getElementById('txtfiletoread');
+        var fileSelected2 = document.getElementById('textFiltDescriptografado')
+        if (fileSelected) {
+            fileSelected.addEventListener('change', function (e) {
+                //Set the extension for the file
+                var fileExtension = /text.*/;
+                //Get the file object
+                var fileTobeRead = fileSelected.files[0];
+                //Check of the extension match
+                if (fileTobeRead.type.match(fileExtension)) {
+                    //Initialize the FileReader object to read the 2file
+                    var fileReader = new FileReader();
+                    fileReader.onload = function (e) {
+                        var fileContents = document.getElementById('filecontents');
+                        fileContents.innerText = encrypt(fileReader.result);
+                    }
+                    fileReader.readAsText(fileTobeRead);
+                }
+                else {
+                    alert("Por favor selecione arquivo texto");
+                }
+
+            }, false);
+        }
+        if (fileSelected2) {
+            fileSelected2.addEventListener('change', function (e) {
+                //Set the extension for the file
+                var fileExtension = /text.*/;
+                //Get the file object
+                var fileTobeRead = fileSelected2.files[0];
+                //Check of the extension match
+                if (fileTobeRead.type.match(fileExtension)) {
+                    //Initialize the FileReader object to read the 2file
+                    var fileReader = new FileReader();
+                    fileReader.onload = function (e) {
+                        var fileContents = document.getElementById('filecontentsOriginal');
+                        console.log(fileReader.result)
+                        fileContents.innerText = descrypt(fileReader.result);
+                    }
+                    fileReader.readAsText(fileTobeRead);
+                }
+                else {
+                    alert("Por favor selecione arquivo texto");
+                }
+
+            }, false);
+        }
+        else {
+            alert("Arquivo(s) não suportado(s)");
+        }
+    }
+
+}

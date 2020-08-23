@@ -1,11 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="css.css" rel="stylesheet">
     <title>Document</title>
 </head>
+
 <body>
     <script src='crypt.js'></script>
+    Por favor selecione arquivo que será lido:
+    <input type="file" id="txtfiletoread" /><br />
+    <div>Conteúdo do arquivo:</div>
+    <div class='text' id="filecontents">
+    </div>
+    <hr>
+    Por favor selecione arquivo que será descriptografado:
+    <input type="file" id="textFiltDescriptografado" /><br />
+    <div>Conteúdo do arquivo:</div>
+    <div class="text" id="filecontentsOriginal">
+    </div>
 </body>
+
 </html>
