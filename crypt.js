@@ -13,17 +13,15 @@ function encrypt(text) {
 
             const valueInText = transformLetterToASCII(currentValue)
 
-            var valueMultiplied = multiply(valueInText)
+            var valueMultiplied = checksIfTheValuesWillBeMultipliedOrDivided(valueInText)
 
             if (valueMultiplied.includes('.')) {
-                // valueMultiplied = tranformCodeFractionated(valueMultiplied)
+                valueMultiplied = tranformCodeFractionated(valueMultiplied)
             }
 
             if (valueMultiplied.length < 3) {
-                // valueMultiplied = `${getHash(1)}${valueMultiplied}`
+                valueMultiplied = `${createHash(1)}${valueMultiplied}`
             }
-
-            console.log(valueMultiplied)
 
             return accumulator.concat(valueMultiplied)
         }, '')
@@ -34,63 +32,60 @@ function transformLetterToASCII(currentValue) {
     return currentValue.charCodeAt()
 }
 
-function multiply(currentValue) {
-    var valueMultiplied = '', multiplied = false
+function checksIfTheValuesWillBeMultipliedOrDivided(currentValue) {
+    let valueMultiplied, hash
 
     if ((currentValue * 2) <= 255) {
         valueMultiplied = String(currentValue * 2)
-        multiplied = true
-    }
-    else {
-        SvalueMultiplied = String(currentValue / 2)
-    }
-
-    if (multiplied === true) {
-        console.log('Entrou1111111')
-        var hash = checkExistInKeysOfOperation(keysOfOperation.multiplied, keysOfOperation.divided, hash)
+        hash = checkExistInKeysOfOperation('multiply', createHash(1, true),
+            keysOfOperation.multiplied, keysOfOperation.divided)
         addHashInKeysOfOperation(keysOfOperation.multiplied, hash)
     }
     else {
-        console.log('Entrou22222222')
-        var hash = checkExistInKeysOfOperation(keysOfOperation.multiplied, keysOfOperation.divided, hash)
+        valueMultiplied = String(currentValue / 2)
+        hash = checkExistInKeysOfOperation('divide', createHash(1, true),
+            keysOfOperation.multiplied, keysOfOperation.divided)
         addHashInKeysOfOperation(keysOfOperation.divided, hash)
     }
 
-    const valueWithHash = valueMultiplied += hash
-
-    return valueWithHash
+    return valueMultiplied += hash
 }
 
-function addHashInKeysOfOperation(value, hash) {
-    if (value.length <= 7) {
-        value.push(hash)
+function checkExistInKeysOfOperation(id, hash, multiplied, divided) {
+    if (id === 'multiply' && multiplied.length <= 6) {
+        hash = getHash(multiplied, divided, hash)
     }
-}
+    else if (multiplied.length === 7) {
+        hash = multiplied[Math.floor(Math.random() * 6)]
+    }
 
-function checkExistInKeysOfOperation(value, value2, hash) {
-    while (value.includes(hash) || value2.includes(hash) || hash === undefined) {
-        hash = getHash(1, true)
+    if (id === 'divide' && divided.length <= 6) {
+        hash = getHash(multiplied, divided, hash)
+    }
+    else if (divided.length === 7) {
+        hash = divided[Math.floor(Math.random() * 6)]
     }
     return hash
 }
 
+function getHash(multiplied, divided, hash) {
+    while (multiplied.includes(hash) || divided.includes(hash) || hash === undefined) {
+        hash = createHash(1, true)
+    }
+    return hash
+}
+
+function addHashInKeysOfOperation(value, hash) {
+    if (value.length <= 6) {
+        value.push(hash)
+    }
+}
 
 function tranformCodeFractionated(valueMultiplied) {
-    return valueMultiplied.replace('.', `0x${getHash(2)}`);
+    return valueMultiplied.replace('.', `0x${createHash(2)}`);
 }
 
-function stringsForHash(counter, stringType = false) {
-    if (counter === 1) {
-        return stringType === false
-            ? 'abcdefghijklmnopqrstuvwxyz'
-            : '!@#$%&*()_-=/+'
-    }
-    else if (counter === 2) {
-        return '0123456789abcdef'
-    }
-}
-
-function getHash(counter, stringType) {
+function createHash(counter, stringType) {
     let string = '', random = ''
     const strings = stringsForHash(counter, stringType)
 
@@ -98,51 +93,51 @@ function getHash(counter, stringType) {
         string = Math.round(Math.random() * strings.length);
         random += strings.substring(string, string + 1);
     }
-
-    // if (random == '0x') {getHash(counter)}
+    
+    if (random === undefined) {
+        createHash(counter, stringType)
+    }
 
     return random
 }
 
-
-console.log(keysOfOperation)
-
-const text = 'Samuel é'//'Desculpe, só trabalho com casadas'
-
-const textEncrypted = encrypt(text)
-
-console.log(textEncrypted)
-
-// console.log(multiplied)
-// console.log(divided)
-
-
-
+function stringsForHash(counter, stringType = false) {
+    if (counter === 1) {
+        return stringType === false
+            ? 'abcdefghijklmnopqrstuvwyz'
+            : '!@#$%&*()_-=/+'
+    }
+    else if (counter === 2) {
+        return '0123456789abcdef'
+    }
+}
 
 function descrypt(textEncrypted) {
     const textWithoutPoints = descryptPoints(textEncrypted)
-    console.log(textWithoutPoints)
 
-    const lettersRemoved = removeLetters(textWithoutPoints)
-    console.log(lettersRemoved)
+    const originalValue = returnToTheOriginalValue(textWithoutPoints)
 
-    const codeChar = getCode(lettersRemoved)
-    console.log(codeChar)
-}
+    let text = ''
 
-function descryptPoints(removeL) {
-    var newText = ''
-
-    const pointsCodes = searchPoints(textEncrypted)
-
-    for (char of pointsCodes) {
-        newText = textEncrypted.replace(pointsCodes, '.')
+    for (let code of originalValue) {
+        text += transformASCIIToLetter(code)
     }
-    return newText
+
+    return text
 }
 
-function searchPoints(textEncrypted) {
+function descryptPoints(textEncrypted) {
+    const pointsCodes = getPoints(textEncrypted)
 
+    if (pointsCodes != []) {
+        for (let char of pointsCodes) {
+            textEncrypted = textEncrypted.replace(char, '.')
+        }
+    }
+    return textEncrypted
+}
+
+function getPoints(textEncrypted) {
     if (textEncrypted.includes('0x')) {
         var accumulator = [], codes = ''
 
@@ -166,6 +161,7 @@ function searchPoints(textEncrypted) {
 
             if (codes.length === 4) {
                 accumulator.push(codes)
+                codes = ''
             }
         }
     }
@@ -177,7 +173,7 @@ function removeLetters(textWithoutPoints) {
     const letters = findLetters(textWithoutPoints)
 
     var newText = ''
-    for (letter of letters) {
+    for (let letter of letters) {
         newText = textWithoutPoints.replace(letter, '0')
     }
     return newText
@@ -198,28 +194,59 @@ function findLetters(textWithoutPoints) {
     return listOfLetters
 }
 
-function getCode(lettersRemoved) {
-    var listOfCodes = [], aux = ''
-    let { length, [length - 1]: lastElement } = listOfCodes
+function transformASCIIToLetter(textEncrypted) {
+    const regex = /[0-9]/
+    let text = '', code = ''
 
-    for (let str of lettersRemoved) {
-        if (aux.length === 3) {
-            listOfCodes.push(aux)
-            aux = ''
+    for (let char of textEncrypted) {
+        if (regex.test(char) && code.length != 3) {
+            code += char
         }
-
-        if (listOfCodes.length >= 1) {
-            if (str === '.' || listOfCodes[listOfCodes.length - 1].length === 4) {
-                listOfCodes[listOfCodes.length - 1] += str
-                str = ''
-            }
-        }
-
-        aux += str
+        text += char
     }
+}
+
+function returnToTheOriginalValue(textEncrypted) {
+    const regex = /[0-9]/
+    let listOfCodes = [], code = ''
+
+    for (let char of textEncrypted) {
+        if (regex.test(char) || char == '.') {
+            code += char
+        }
+
+        if (!regex.test(char) && char != '.') {
+            listOfCodes.push(remultiplicar(code, char))
+            code = ''
+        }
+    }
+
     return listOfCodes
+}
+
+function remultiplicar(code, key) {
+    return keysOfOperation.multiplied.indexOf(key) != -1
+        ? code / 2
+        : code * 2
+}
+
+function transformASCIIToLetter(code) {
+    return String.fromCharCode(code)
 }
 
 
 
-// descrypt(textEncrypted)
+const text = 'O Brasil é um país continental, considerado o 5º maior do mundo em extensão territorial'
+
+const textEncrypted = encrypt(text)
+
+const textDescrypt = descrypt(textEncrypted)
+
+
+// console.log(keysOfOperation)
+
+console.log(text)
+
+console.log(textEncrypted)
+
+console.log(textDescrypt)
